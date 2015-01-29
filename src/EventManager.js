@@ -945,10 +945,15 @@ function EventManager(options) { // assumed to be a calendar
 		var anyContainment;
 		var i, otherEvent;
 		var otherOverlap;
+		var resources = null;
 
 		// normalize. fyi, we're normalizing in too many places :(
 		start = start.clone().stripZone();
 		end = end.clone().stripZone();
+
+		if (event && event.resources) {
+			resources = event.resources;
+		}
 
 		// the range must be fully contained by at least one of produced constraint events
 		if (constraint != null) {
@@ -976,7 +981,7 @@ function EventManager(options) { // assumed to be a calendar
 			}
 
 			// there needs to be an actual intersection before disallowing anything
-			if (eventIntersectsRange(otherEvent, start, end)) {
+			if (eventIntersectsRange(otherEvent, start, end, resources)) {
 
 				// evaluate overlap for the given range and short-circuit if necessary
 				if (overlap === false) {
@@ -1038,11 +1043,22 @@ function EventManager(options) { // assumed to be a calendar
 
 	// Does the event's date range intersect with the given range?
 	// start/end already assumed to have stripped zones :(
-	function eventIntersectsRange(event, start, end) {
+	function eventIntersectsRange(event, start, end, resources) {
 		var eventStart = event.start.clone().stripZone();
 		var eventEnd = t.getEventEnd(event).stripZone();
 
-		return start < eventEnd && end > eventStart;
+		var resourceOverlap = false;
+		if (resources && event.resources) {
+			for (var i = 0; i < resources.length; i++) {
+				for (var j = 0; j < event.resources.length; j++) {
+					if (resources[i] == event.resources[j]) {
+						resourceOverlap = true;
+					}
+				}
+			}
+		}
+
+		return start < eventEnd && end > eventStart && resourceOverlap;
 	}
 
 }

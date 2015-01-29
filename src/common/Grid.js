@@ -91,6 +91,7 @@ $.extend(Grid.prototype, {
 		var dates = null; // the inclusive dates of the selection. will be null if no selection
 		var start; // the inclusive start of the selection
 		var end; // the *exclusive* end of the selection
+		var resources;
 		var dayEl;
 		var sourceSeg;
 
@@ -113,6 +114,7 @@ $.extend(Grid.prototype, {
 					end = dates[1].clone().add(_this.cellDuration);
 
 					if (view.name === 'resourceDay') {
+						resources = [view.resources()[cell.col].id];
 						sourceSeg = {
 							event: {
 								editable: false,
@@ -122,7 +124,7 @@ $.extend(Grid.prototype, {
 					}
 
 					if (isSelectable) {
-						if (calendar.isSelectionAllowedInRange(start, end)) { // allowed to select within this range?
+						if (calendar.isSelectionAllowedInRange(start, end, resources)) { // allowed to select within this range?
 							_this.renderSelection(start, end, sourceSeg);
 						}
 						else {

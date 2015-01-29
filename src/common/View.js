@@ -266,6 +266,7 @@ View.prototype = {
 		var eventStart = null; // a null value signals an unsuccessful drag
 		var eventEnd = null;
 		var visibleEnd = null; // will be calculated event when no eventEnd
+		var resources = null;
 		var el;
 		var accept;
 		var meta;
@@ -289,13 +290,14 @@ View.prototype = {
 						eventStart = cellDate;
 						eventEnd = meta.duration ? eventStart.clone().add(meta.duration) : null;
 						visibleEnd = eventEnd || calendar.getDefaultEventEnd(!eventStart.hasTime(), eventStart);
+						resources = null;
 
 						// keep the start/end up to date when dragging
 						if (eventProps) {
 							$.extend(eventProps, { start: eventStart, end: eventEnd });
 						}
 
-						if (calendar.isExternalDragAllowedInRange(eventStart, visibleEnd, eventProps)) {
+						if (calendar.isExternalDragAllowedInRange(eventStart, visibleEnd, resources, eventProps)) {
 							_this.renderDrag(eventStart, visibleEnd);
 						}
 						else {

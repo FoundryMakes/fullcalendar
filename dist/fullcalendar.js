@@ -2232,21 +2232,22 @@ function EventManager(options) { // assumed to be a calendar
 			options.eventOverlap
 		);
 
-		return isRangeAllowed(start, end, constraint, overlap, event);
+		return isRangeAllowed(start, end, event.resources, constraint, overlap, event);
 	}
 
 
-	function isSelectionAllowedInRange(start, end) {
+	function isSelectionAllowedInRange(start, end, resources) {
 		return isRangeAllowed(
 			start,
 			end,
+			resources,
 			options.selectConstraint,
 			options.selectOverlap
 		);
 	}
 
 
-	function isExternalDragAllowedInRange(start, end, eventInput) { // eventInput is optional associated event data
+	function isExternalDragAllowedInRange(start, end, resources, eventInput) { // eventInput is optional associated event data
 		var event;
 
 		if (eventInput) {
@@ -2256,25 +2257,24 @@ function EventManager(options) { // assumed to be a calendar
 			}
 		}
 
-		return isSelectionAllowedInRange(start, end); // treat it as a selection
+		return isSelectionAllowedInRange(start, end, resources); // treat it as a selection
 	}
 
 
 	// Returns true if the given range (caused by an event drop/resize or a selection) is allowed to exist
 	// according to the constraint/overlap settings.
 	// `event` is not required if checking a selection.
-	function isRangeAllowed(start, end, constraint, overlap, event) {
+	function isRangeAllowed(start, end, resources, constraint, overlap, event) {
 		var constraintEvents;
 		var anyContainment;
 		var i, otherEvent;
 		var otherOverlap;
-		var resources = null;
 
 		// normalize. fyi, we're normalizing in too many places :(
 		start = start.clone().stripZone();
 		end = end.clone().stripZone();
 
-		if (event && event.resources) {
+		if (!resources && event && event.resources) {
 			resources = event.resources;
 		}
 
@@ -2376,6 +2376,7 @@ function EventManager(options) { // assumed to be a calendar
 				for (var j = 0; j < event.resources.length; j++) {
 					if (resources[i] == event.resources[j]) {
 						resourceOverlap = true;
+						break;
 					}
 				}
 			}
@@ -4873,6 +4874,7 @@ $.extend(Grid.prototype, {
 		var dates = null; // the inclusive dates of the selection. will be null if no selection
 		var start; // the inclusive start of the selection
 		var end; // the *exclusive* end of the selection
+		var resources;
 		var dayEl;
 		var sourceSeg;
 
@@ -4895,6 +4897,7 @@ $.extend(Grid.prototype, {
 					end = dates[1].clone().add(_this.cellDuration);
 
 					if (view.name === 'resourceDay') {
+						resources = [view.resources()[cell.col].id];
 						sourceSeg = {
 							event: {
 								editable: false,
@@ -4904,7 +4907,7 @@ $.extend(Grid.prototype, {
 					}
 
 					if (isSelectable) {
-						if (calendar.isSelectionAllowedInRange(start, end)) { // allowed to select within this range?
+						if (calendar.isSelectionAllowedInRange(start, end, resources)) { // allowed to select within this range?
 							_this.renderSelection(start, end, sourceSeg);
 						}
 						else {
@@ -8198,6 +8201,7 @@ View.prototype = {
 		var eventStart = null; // a null value signals an unsuccessful drag
 		var eventEnd = null;
 		var visibleEnd = null; // will be calculated event when no eventEnd
+		var resources = null;
 		var el;
 		var accept;
 		var meta;
@@ -8221,13 +8225,14 @@ View.prototype = {
 						eventStart = cellDate;
 						eventEnd = meta.duration ? eventStart.clone().add(meta.duration) : null;
 						visibleEnd = eventEnd || calendar.getDefaultEventEnd(!eventStart.hasTime(), eventStart);
+						resources = null;
 
 						// keep the start/end up to date when dragging
 						if (eventProps) {
 							$.extend(eventProps, { start: eventStart, end: eventEnd });
 						}
 
-						if (calendar.isExternalDragAllowedInRange(eventStart, visibleEnd, eventProps)) {
+						if (calendar.isExternalDragAllowedInRange(eventStart, visibleEnd, resources, eventProps)) {
 							_this.renderDrag(eventStart, visibleEnd);
 						}
 						else {

@@ -317,7 +317,8 @@ $.extend(Grid.prototype, {
 			dragStop: function(ev) {
 				var hasChanged = newStart && !newStart.isSame(event.start);
 
-				if (view.name === 'resourceDay') {
+				// A blank newStart is an indication that the move isn't "approved".
+				if (newStart && view.name === 'resourceDay') {
 					var sameResources = $(originalResources).not(event.resources).length === 0 &&
 							$(event.resources).not(originalResources).length === 0;
 					hasChanged = hasChanged || !sameResources;

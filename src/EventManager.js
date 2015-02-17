@@ -779,6 +779,7 @@ function EventManager(options) { // assumed to be a calendar
 			var oldAllDay = event._allDay;
 			var oldStart = event._start;
 			var oldEnd = event._end;
+			var oldResources = event._resources;
 			var newAllDay = forceAllDay != null ? forceAllDay : oldAllDay;
 			var newStart = oldStart.clone();
 			var newEnd = (!clearEnd && oldEnd) ? oldEnd.clone() : null;
@@ -833,6 +834,7 @@ function EventManager(options) { // assumed to be a calendar
 				event.allDay = oldAllDay;
 				event.start = oldStart;
 				event.end = oldEnd;
+				event.resources = oldResources;
 				backupEventDates(event);
 			});
 		});
@@ -1070,4 +1072,5 @@ function backupEventDates(event) {
 	event._allDay = event.allDay;
 	event._start = event.start.clone();
 	event._end = event.end ? event.end.clone() : null;
+	event._resources = event.resources.slice(0);
 }
